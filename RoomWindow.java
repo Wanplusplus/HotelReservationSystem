@@ -16,20 +16,13 @@ public class RoomWindow {
     private JCheckBox chauffeurServiceBox, sunsetDinnerBox, liveEntertainmentBox;
     private JCheckBox lateCheckOutBox, valetParkingBox, champagneChocolatesBox;
     private JTextField daysInput;
-    private JLabel guestLabel, daysLabel; // Added daysLabel
+    private JLabel guestLabel, daysLabel, priceLabel; // Added priceLabel
     private int finalPrice;
     private boolean isBooked;
 
     public RoomWindow(RoomButton roomButton) {
         this.roomButton = roomButton;
         this.isBooked = roomButton.isBooked();
-
-        // Initialize finalPrice based on whether the room is booked
-        if (isBooked) {
-            finalPrice = bookingPrices.get(roomButton.getRoomNumber()); // Get the booked price
-        } else {
-            finalPrice = roomButton.getBasePrice(); // Initialize finalPrice with the base price
-        }
 
         roomFrame = new JFrame("Room " + String.format("%03d", roomButton.getRoomNumber()));
         roomFrame.setSize(350, 500);
@@ -39,7 +32,6 @@ public class RoomWindow {
 
         JLabel roomInfo = new JLabel("Room " + String.format("%03d", roomButton.getRoomNumber()), SwingConstants.CENTER);
         guestLabel = new JLabel(isBooked ? "Guest: " + guestList.get(roomButton.getRoomNumber()) : "Available", SwingConstants.CENTER);
-
         daysLabel = new JLabel(isBooked ? "Days Stayed: " + bookingDays.get(roomButton.getRoomNumber()) : "", SwingConstants.CENTER); // Initialize daysLabel
 
         // Add components to the frame
@@ -130,17 +122,19 @@ public class RoomWindow {
         roomFrame.add(addonsPanel);
         roomFrame.add(backButton);
         roomFrame.add(bookButton);
+
+        // Add price label for the booking panel
+        priceLabel = new JLabel("Price: $" + finalPrice, SwingConstants.CENTER);
+        roomFrame.add(priceLabel); // Add priceLabel to the frame
     }
 
     private void showBookingDetails() {
         // Show the booking details for the booked room
         String guestName = guestList.get(roomButton.getRoomNumber());
-
         int daysStayed = bookingDays.get(roomButton.getRoomNumber());
 
         guestLabel.setText("Guest: " + guestName);
         daysLabel.setText("Days Stayed: " + daysStayed); // Update daysLabel
-
 
         // Create a button to remove the guest
         JButton removeGuestButton = new JButton("Remove Guest");
@@ -150,6 +144,11 @@ public class RoomWindow {
         roomFrame.add(removeGuestButton);
         roomFrame.revalidate(); // Refresh the frame to show the new button
         roomFrame.repaint(); // Repaint the frame
+
+        // Remove the price label when reopening a booked room
+        if (priceLabel != null) {
+            priceLabel.setVisible(false);
+        }
     }
 
     private void updatePrice() {
@@ -185,8 +184,8 @@ public class RoomWindow {
             finalPrice += (days - 1) * getDailyRate(roomButton.getBasePrice());
         }
 
-        // Debugging: Print the calculated price
-
+        // Update the price label
+        priceLabel.setText("Price: $" + finalPrice);
     }
 
     private int getDaysStayed() {
