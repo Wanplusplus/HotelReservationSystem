@@ -16,14 +16,20 @@ public class RoomWindow {
     private JCheckBox chauffeurServiceBox, sunsetDinnerBox, liveEntertainmentBox;
     private JCheckBox lateCheckOutBox, valetParkingBox, champagneChocolatesBox;
     private JTextField daysInput;
-    private JLabel priceLabel, guestLabel, daysLabel; // Added daysLabel
+    private JLabel guestLabel, daysLabel; // Added daysLabel
     private int finalPrice;
     private boolean isBooked;
 
     public RoomWindow(RoomButton roomButton) {
         this.roomButton = roomButton;
-        this.finalPrice = roomButton.getBasePrice();
         this.isBooked = roomButton.isBooked();
+
+        // Initialize finalPrice based on whether the room is booked
+        if (isBooked) {
+            finalPrice = bookingPrices.get(roomButton.getRoomNumber()); // Get the booked price
+        } else {
+            finalPrice = roomButton.getBasePrice(); // Initialize finalPrice with the base price
+        }
 
         roomFrame = new JFrame("Room " + String.format("%03d", roomButton.getRoomNumber()));
         roomFrame.setSize(350, 500);
@@ -33,14 +39,24 @@ public class RoomWindow {
 
         JLabel roomInfo = new JLabel("Room " + String.format("%03d", roomButton.getRoomNumber()), SwingConstants.CENTER);
         guestLabel = new JLabel(isBooked ? "Guest: " + guestList.get(roomButton.getRoomNumber()) : "Available", SwingConstants.CENTER);
-        priceLabel = new JLabel("Price: $" + finalPrice, SwingConstants.CENTER);
+
         daysLabel = new JLabel(isBooked ? "Days Stayed: " + bookingDays.get(roomButton.getRoomNumber()) : "", SwingConstants.CENTER); // Initialize daysLabel
 
+        // Add components to the frame
+        roomFrame.add(roomInfo);
+        roomFrame.add(guestLabel);
+        roomFrame.add(daysLabel); // Add daysLabel to the frame
+
         if (isBooked) {
-            showBookingDetails();
-            return; // Exit the constructor if the room is booked
+            showBookingDetails(); // Show booking details if the room is booked
+        } else {
+            setupBookingPanel(); // Setup booking panel if the room is available
         }
 
+        roomFrame.setVisible(true);
+    }
+
+    private void setupBookingPanel() {
         JPanel daysPanel = new JPanel();
         daysPanel.add(new JLabel("Days Stayed:"));
         daysInput = new JTextField(5);
@@ -109,36 +125,31 @@ public class RoomWindow {
         addonsPanel.add(champagneChocolatesBox);
 
         // Add components to the frame
-        roomFrame.add(roomInfo);
-        roomFrame.add(guestLabel);
-        roomFrame.add(daysLabel); // Add daysLabel to the frame
-        roomFrame.add(priceLabel);
         roomFrame.add(daysPanel);
         roomFrame.add(okButton);
         roomFrame.add(addonsPanel);
         roomFrame.add(backButton);
         roomFrame.add(bookButton);
-
-        roomFrame.setVisible(true);
     }
 
     private void showBookingDetails() {
         // Show the booking details for the booked room
         String guestName = guestList.get(roomButton.getRoomNumber());
-        int bookedPrice = bookingPrices.get(roomButton.getRoomNumber());
+
         int daysStayed = bookingDays.get(roomButton.getRoomNumber());
-        String addons = bookingAddons.get(roomButton.getRoomNumber());
 
         guestLabel.setText("Guest: " + guestName);
         daysLabel.setText("Days Stayed: " + daysStayed); // Update daysLabel
-        priceLabel.setText("Price: $" + bookedPrice);
-        
+
+
         // Create a button to remove the guest
         JButton removeGuestButton = new JButton("Remove Guest");
         removeGuestButton.addActionListener(e -> removeGuest());
 
+        // Add the remove guest button to the frame
         roomFrame.add(removeGuestButton);
-        roomFrame.setVisible(true);
+        roomFrame.revalidate(); // Refresh the frame to show the new button
+        roomFrame.repaint(); // Repaint the frame
     }
 
     private void updatePrice() {
@@ -148,74 +159,34 @@ public class RoomWindow {
             return;
         }
 
-        // Calculate the base price based on the floor
-        finalPrice = roomButton.getBasePrice();
+        // Reset finalPrice to the base price
+        finalPrice = roomButton.getBasePrice(); // This should be $35
 
-        // If days is greater than 1, add the daily rate
+        // Calculate extra costs based on selected amenities (not multiplied by days)
+        int extra = 0;
+        if (poolBox.isSelected()) extra += 20;
+        if (spaBox.isSelected()) extra += 30;
+        if (fitnessCenterBox.isSelected()) extra += 15;
+        if (buffetBox.isSelected()) extra += 50;
+        if (coffeeTeaBox.isSelected()) extra += 10;
+        if (wineCocktailBox.isSelected()) extra += 40;
+        if (chauffeurServiceBox.isSelected()) extra += 100;
+        if (sunsetDinnerBox.isSelected()) extra += 150;
+        if (liveEntertainmentBox.isSelected()) extra += 75;
+        if (lateCheckOutBox.isSelected()) extra += 30;
+        if (valetParkingBox.isSelected()) extra += 20;
+        if (champagneChocolatesBox.isSelected()) extra += 60;
+
+        // Add extras to the final price
+        finalPrice += extra;
+
+        // Add daily rate for additional days (if days > 1)
         if (days > 1) {
             finalPrice += (days - 1) * getDailyRate(roomButton.getBasePrice());
         }
 
-        // Calculate extra costs based on selected amenities (not multiplied by days)
-        int extra = 0;
-        StringBuilder selectedAddons = new StringBuilder();
-        if (poolBox.isSelected()) {
-            extra += 20;
-            selectedAddons.append("Swimming Pool Access, ");
-        }
-        if (spaBox.isSelected()) {
-            extra += 30;
-            selectedAddons.append("Spa & Massage Package, ");
-        }
-        if (fitnessCenterBox.isSelected()) {
-            extra += 15;
-            selectedAddons.append("Fitness Center Access, ");
-        }
-        if (buffetBox.isSelected()) {
-            extra += 50;
-            selectedAddons.append("Unlimited Buffet, ");
-        }
-        if (coffeeTeaBox.isSelected()) {
-            extra += 10;
-            selectedAddons.append("Premium Coffee & Tea Service, ");
-        }
-        if (wineCocktailBox.isSelected()) {
-            extra += 40;
-            selectedAddons.append("Wine & Cocktail Package, ");
-        }
-        if (chauffeurServiceBox.isSelected()) {
-            extra += 100;
-            selectedAddons.append("Private Chauffeur Service, ");
-        }
-        if (sunsetDinnerBox.isSelected()) {
-            extra += 150;
-            selectedAddons.append("Sunset Dinner by the Beach, ");
-        }
-        if (liveEntertainmentBox.isSelected()) {
-            extra += 75;
-            selectedAddons.append("Live Entertainment Access, ");
-        }
-        if (lateCheckOutBox.isSelected()) {
-            extra += 30;
-            selectedAddons.append("Late Check-out & Early Check-in, ");
-        }
-        if (valetParkingBox.isSelected()) {
-            extra += 20;
-            selectedAddons.append("Valet Parking & Car Rental, ");
-        }
-        if (champagneChocolatesBox.isSelected()) {
-            extra += 60;
-            selectedAddons.append("In-room Champagne & Chocolates, ");
-        }
+        // Debugging: Print the calculated price
 
-        // Remove the last comma and space
-        if (selectedAddons.length() > 0) {
-            selectedAddons.setLength(selectedAddons.length() - 2);
-        }
-
-        finalPrice += extra; // Add extras to the final price
-        priceLabel.setText("Price: $" + finalPrice);
-        bookingAddons.put(roomButton.getRoomNumber(), selectedAddons.toString());
     }
 
     private int getDaysStayed() {
@@ -238,7 +209,9 @@ public class RoomWindow {
 
     private void bookRoom() {
         int days = getDaysStayed();
-        finalPrice += days * getDailyRate(roomButton.getBasePrice());
+        // Calculate the total price for booking
+        finalPrice = roomButton.getBasePrice(); // Start with the base price
+        finalPrice += (days * getDailyRate(roomButton.getBasePrice())); // Add daily rate for the number of days
 
         if (!isBooked) {
             String guestName;
@@ -254,7 +227,6 @@ public class RoomWindow {
             JOptionPane.showMessageDialog(roomFrame, "Stay extended for " + days + " more days!");
         }
 
-        priceLabel.setText("Price: $" + finalPrice);
         daysLabel.setText("Days Stayed: " + days); // Update daysLabel
         roomFrame.dispose();
     }

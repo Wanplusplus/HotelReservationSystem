@@ -19,7 +19,7 @@ public class MainApplication {
         JPanel headerPanel = new JPanel(new BorderLayout());
 
         // Create a panel to hold the welcome message and floor label
-        JPanel welcomePanel = new JPanel(new GridLayout(2, 1)); // Centering panel
+        JPanel welcomePanel = new JPanel(new GridLayout(2, 1)); // Centering 
         JLabel welcomeLabel = new JLabel("Welcome, " + userName, SwingConstants.CENTER);
         floorLabel = new JLabel(getFloorLabel(), SwingConstants.CENTER);
 
@@ -48,7 +48,7 @@ public class MainApplication {
             mainFrame.dispose(); // Close the main application window
             // Show the login dialog again
             String[] credentials = NameInputDialog.showDialog(null);
-            String userName1 = credentials[0]; // Get the username
+            String userName1 = credentials[0]; // Get the username 
             if (userName1 != null && !userName1.isEmpty()) {
                 new MainApplication(userName1); // Start a new instance of MainApplication
             } else {
@@ -137,7 +137,6 @@ public class MainApplication {
         SwingUtilities.invokeLater(() -> {
             String[] credentials = NameInputDialog.showDialog(null);
             String userName = credentials[0]; // Get the username
-            // You can add password handling logic here if needed
             if (userName != null && !userName.isEmpty()) {
                 new MainApplication(userName);
             } else {
